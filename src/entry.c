@@ -94,7 +94,7 @@ static HSTRING make_hstring(const wchar_t *str)
     return SUCCEEDED(hr) ? hs : NULL;
 }
 
-/* Core — accetta aumid e XML già pronto in wchar_t */
+/* Core — accepts aumid and an XML as wchar_t */
 static int sendToastXml(const wchar_t *aumid, const wchar_t *xmlWide)
 {
     HRESULT hr;
@@ -182,12 +182,12 @@ static int sendToastXml(const wchar_t *aumid, const wchar_t *xmlWide)
     toast->lpVtbl->Release(toast);
     if (FAILED(hr)) {
         BeaconPrintf(CALLBACK_ERROR, "Show failed: 0x%08lx\n", (unsigned long)hr);
-        //if (roInitCalled) COMBASE$RoUninitialize();
+        if (roInitCalled) COMBASE$RoUninitialize();
         return 1;
     }
 
     BeaconPrintf(CALLBACK_OUTPUT, "Toast sent successfully.\n");
-    //if (roInitCalled) COMBASE$RoUninitialize();
+    if (roInitCalled) COMBASE$RoUninitialize();
     return 0;
 
 fail_xmlio:
@@ -199,11 +199,11 @@ fail_manager:
 fail_toast:
     if (toast) toast->lpVtbl->Release(toast);
 fail_early:
-    //if (roInitCalled) COMBASE$RoUninitialize();
+    if (roInitCalled) COMBASE$RoUninitialize();
     return 1;
 }
 
-/* Wrapper semplice — costruisce XML da title+text e delega */
+/* sendtoast wrapper — builds XML from title+text and delegates */
 int sendToast(const wchar_t *aumid, const wchar_t *title, const wchar_t *text)
 {
     const size_t xmlBufLen = 2048;
@@ -230,7 +230,7 @@ int sendToast(const wchar_t *aumid, const wchar_t *title, const wchar_t *text)
     return ret;
 }
 
-/* Wrapper custom — decode base64 -> wchar_t e delega */
+/* custom wrapper — decodes base64 -> wchar_t and delegates */
 int sendToastCustom(const wchar_t *aumid, const char *b64xml, int b64len)
 {
     DWORD xmlLen = 0;
