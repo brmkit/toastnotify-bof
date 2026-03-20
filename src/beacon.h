@@ -55,7 +55,6 @@ DECLSPEC_IMPORT void BeaconInjectTemporaryProcess(PROCESS_INFORMATION *pInfo, ch
 DECLSPEC_IMPORT void BeaconCleanupProcess(PROCESS_INFORMATION *pInfo);
 
 /* Utility Functions */
-DECLSPEC_IMPORT BOOL toWideChar(char *src, wchar_t *dst, int max);
 
 #define PRINT(...)                        \
     {                                               \

@@ -70,7 +70,12 @@ static void enumSubkeys(HKEY root, const wchar_t *path)
 
     ADVAPI32$RegCloseKey(hKey);
 
-    BeaconPrintf(CALLBACK_OUTPUT, "%s", BeaconFormatToString(&buffer, NULL));
+    int outLen = 0;
+    char *out = BeaconFormatToString(&buffer, &outLen);
+    if (out && outLen > 0)
+        BeaconOutput(CALLBACK_OUTPUT, out, outLen);
+    else
+        BeaconPrintf(CALLBACK_OUTPUT, "  (none found)\n");
     BeaconFormatFree(&buffer);
 }
 
@@ -317,9 +322,9 @@ void go(char *args, int len)
         }
 
         wchar_t aumid[256], title[256], text_buf[1024];
-        toWideChar(aumid_a, aumid, 256);
-        toWideChar(title_a, title, 256);
-        toWideChar(text_a,  text_buf, 1024);
+        KERNEL32$MultiByteToWideChar(CP_ACP, 0, aumid_a, -1, aumid, 256);
+        KERNEL32$MultiByteToWideChar(CP_ACP, 0, title_a, -1, title, 256);
+        KERNEL32$MultiByteToWideChar(CP_ACP, 0, text_a, -1, text_buf, 1024);
 
         sendToast(aumid, title, text_buf);
         return;
@@ -336,7 +341,7 @@ void go(char *args, int len)
         }
 
         wchar_t aumid[256];
-        toWideChar(aumid_a, aumid, 256);
+        KERNEL32$MultiByteToWideChar(CP_ACP, 0, aumid_a, -1, aumid, 256);
 
         sendToastCustom(aumid, b64xml, b64Len > 0 ? b64Len - 1 : 0);
         return;

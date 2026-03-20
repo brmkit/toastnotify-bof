@@ -1,0 +1,79 @@
+# toastnotify.cna - Aggressor script for toastnotify BOF
+# Sends Windows toast notifications via WinRT APIs
+
+beacon_command_register(
+    "toastnotify",
+    "Send Windows toast notifications",
+    "Usage:\n" .
+    "  toastnotify getaumid                              - Enumerate registered AUMIDs\n" .
+    "  toastnotify sendtoast <aumid> <title> <body>      - Send a simple toast notification\n" .
+    "  toastnotify custom <aumid> <base64-xml>           - Send a toast from base64-encoded XML\n" .
+    "\n" .
+    "Examples:\n" .
+    "  toastnotify getaumid\n" .
+    "  toastnotify sendtoast \"MSEdge\" \"Update Available\" \"Click to install the latest update.\"\n" .
+    "  toastnotify custom \"MSEdge\" \"PHRvYXN0Pi4uLjwvdG9hc3Q+\"\n"
+);
+
+alias toastnotify {
+    local('$bid $bof $args $subcmd $aumid $title $text $b64xml');
+
+    $bid = $1;
+    $subcmd = $2;
+
+    if ($subcmd eq "" || $subcmd is $null) {
+        berror($bid, "Usage: toastnotify <getaumid|sendtoast|custom> [args...]");
+        return;
+    }
+
+    $bof = script_resource("build/toastnotify.x64.o");
+
+    if ($subcmd eq "getaumid") {
+        # BOF expects: z
+        $args = bof_pack($bid, "z", "getaumid");
+        beacon_inline_execute($bid, readbof($bof), "go", $args);
+        return;
+    }
+
+    if ($subcmd eq "sendtoast") {
+        $aumid = $3;
+        $title = $4;
+        $text  = $5;
+
+        if ($aumid eq "" || $title eq "" || $text eq "") {
+            berror($bid, "Usage: toastnotify sendtoast <aumid> <title> <body>");
+            return;
+        }
+
+        # BOF expects: zzzz
+        $args = bof_pack($bid, "zzzz", "sendtoast", $aumid, $title, $text);
+        beacon_inline_execute($bid, readbof($bof), "go", $args);
+        return;
+    }
+
+    if ($subcmd eq "custom") {
+        $aumid  = $3;
+        $b64xml = $4;
+
+        if ($aumid eq "" || $b64xml eq "") {
+            berror($bid, "Usage: toastnotify custom <aumid> <base64-xml>");
+            return;
+        }
+
+        # BOF expects: zzz
+        $args = bof_pack($bid, "zzz", "custom", $aumid, $b64xml);
+        beacon_inline_execute($bid, readbof($bof), "go", $args);
+        return;
+    }
+
+    berror($bid, "Unknown subcommand: " . $subcmd . "\nValid: getaumid, sendtoast, custom");
+}
+
+# Helper to read the BOF from disk
+sub readbof {
+    local('$bof $handle');
+    $handle = openf($1);
+    $bof = readb($handle, -1);
+    closef($handle);
+    return $bof;
+}

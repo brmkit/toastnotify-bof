@@ -13,4 +13,4 @@ all: $(OBJS)
 	mv *.o build/$(PRJNAME).o
 
 clean:
-	rm build/$(PRJNAME)/*.o
+	rm -f build/$(PRJNAME).o build/$(PRJNAME).x64.o *.o
